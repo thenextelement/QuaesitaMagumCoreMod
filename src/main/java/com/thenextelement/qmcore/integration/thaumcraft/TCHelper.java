@@ -1,0 +1,466 @@
+package com.thenextelement.qmcore.integration.thaumcraft;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
+import net.minecraft.enchantment.Enchantment;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.CraftingManager;
+import net.minecraft.item.crafting.IRecipe;
+
+import org.apache.commons.lang3.ArrayUtils;
+
+import com.thenextelement.qmcore.QuaesitaMagum;
+import com.thenextelement.qmcore.common.utils.StackUtils;
+
+import thaumcraft.api.ThaumcraftApi;
+import thaumcraft.api.aspects.Aspect;
+import thaumcraft.api.aspects.AspectList;
+import thaumcraft.api.crafting.CrucibleRecipe;
+import thaumcraft.api.crafting.IArcaneRecipe;
+import thaumcraft.api.crafting.InfusionEnchantmentRecipe;
+import thaumcraft.api.crafting.InfusionRecipe;
+import thaumcraft.api.research.ResearchCategories;
+import thaumcraft.api.research.ResearchCategoryList;
+import thaumcraft.api.research.ResearchItem;
+import thaumcraft.api.research.ResearchPage;
+
+public class TCHelper {
+
+    public static IRecipe findCraftingRecipe(ItemStack stack) {
+        for (IRecipe recipe : CraftingManager.getInstance()
+            .getRecipeList()) {
+            final ItemStack output = recipe.getRecipeOutput();
+            if (output != null && StackUtils.areStacksEqual(output, stack, true)) {
+                return recipe;
+            }
+        }
+        return null;
+    }
+
+    public static IArcaneRecipe findArcaneRecipe(ItemStack stack) {
+        for (Object craft : ThaumcraftApi.getCraftingRecipes()) {
+            if (craft instanceof IArcaneRecipe recipe) {
+                final ItemStack output = recipe.getRecipeOutput();
+                if (output != null && StackUtils.areStacksEqual(output, stack, true)) {
+                    return recipe;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static IArcaneRecipe findArcaneRecipe(ItemStack stack, boolean ignoreNBT) {
+        for (Object craft : ThaumcraftApi.getCraftingRecipes()) {
+            if (craft instanceof IArcaneRecipe recipe) {
+                final ItemStack output = recipe.getRecipeOutput();
+                if (output != null && StackUtils.areStacksEqual(output, stack, ignoreNBT)) {
+                    return recipe;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static CrucibleRecipe findCrucibleRecipe(ItemStack stack) {
+        for (Object craft : ThaumcraftApi.getCraftingRecipes()) {
+            if (craft instanceof CrucibleRecipe recipe) {
+                final ItemStack output = recipe.getRecipeOutput();
+                if (output != null && StackUtils.areStacksEqual(output, stack, true)) {
+                    return recipe;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static InfusionRecipe findInfusionRecipe(ItemStack stack) {
+        for (Object craft : ThaumcraftApi.getCraftingRecipes()) {
+            if (craft instanceof InfusionRecipe recipe) {
+                final Object output = recipe.getRecipeOutput();
+                if (output instanceof ItemStack && StackUtils.areStacksEqual((ItemStack) output, stack, true)) {
+                    return recipe;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static InfusionEnchantmentRecipe findInfusionEnchantRecipe(int effectID) {
+        for (Object craft : ThaumcraftApi.getCraftingRecipes()) {
+            if (craft instanceof InfusionEnchantmentRecipe recipe) {
+                final Enchantment enchantment = recipe.getEnchantment();
+                if (enchantment != null && recipe.getEnchantment().effectId == effectID) {
+                    return recipe;
+                }
+            }
+        }
+        return null;
+    }
+
+    public static void clearPages(final String research) {
+        ResearchItem ri = ResearchCategories.getResearch(research);
+        if (ri == null) {
+            QuaesitaMagum.LOG.warn("Tried to clear pages for null Thaumcraft research \"{}\"", research);
+            return;
+        }
+        ri.setPages();
+    }
+
+    public static void addResearchPage(final String research, ResearchPage page) {
+        ResearchItem ri = ResearchCategories.getResearch(research);
+        if (ri == null) {
+            QuaesitaMagum.LOG.warn("Tried to add research page for null Thaumcraft research \"{}\"", research);
+            return;
+        }
+        ri.setPages(ArrayUtils.add(ri.getPages(), page));
+    }
+
+    public static void clearPrereq(final String research) {
+        ResearchItem ri = ResearchCategories.getResearch(research);
+        if (ri == null) {
+            QuaesitaMagum.LOG.warn("Tried to clear prereqs for null Thaumcraft research \"{}\"", research);
+            return;
+        }
+        ri.setParents()
+            .setParentsHidden();
+    }
+
+    public static void addResearchPrereq(final String research, String prereq, boolean hidden) {
+        ResearchItem ri = ResearchCategories.getResearch(research);
+        if (ri == null) {
+            QuaesitaMagum.LOG.warn("Tried to add prereq \"{}\" for null Thaumcraft research \"{}\"", prereq, research);
+            return;
+        }
+        if (hidden) ri.setParentsHidden(ArrayUtils.add(ri.parentsHidden, prereq));
+        else ri.setParents(ArrayUtils.add(ri.parents, prereq));
+    }
+
+    public static void clearSiblings(final String research) {
+        ResearchItem ri = ResearchCategories.getResearch(research);
+        if (ri == null) {
+            QuaesitaMagum.LOG.warn("Tried to clear siblings for null Thaumcraft research \"{}\"", research);
+            return;
+        }
+        ri.setSiblings();
+    }
+
+    public static void addResearchSibling(final String research, String sibling) {
+        ResearchItem ri = ResearchCategories.getResearch(research);
+        if (ri == null) {
+            QuaesitaMagum.LOG
+                .warn("Tried to add sibling \"{}\" for null Thaumcraft research \"{}\"", sibling, research);
+            return;
+        }
+        ri.setSiblings(ArrayUtils.add(ri.siblings, sibling));
+    }
+
+    private static Field tags = null;
+
+    public static void setResearchAspects(final String research, AspectList aspects) {
+        ResearchItem ri = ResearchCategories.getResearch(research);
+        if (ri == null) {
+            QuaesitaMagum.LOG.warn("Tried to set aspects for null Thaumcraft research \"{}\"", research);
+            return;
+        }
+        try {
+            if (tags == null) {
+                tags = ResearchItem.class.getField("tags");
+                tags.setAccessible(true);
+            }
+            tags.set(ri, aspects);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public static void setResearchComplexity(final String research, int complexity) {
+        ResearchItem ri = ResearchCategories.getResearch(research);
+        if (ri == null) {
+            QuaesitaMagum.LOG.warn("Tried to set complexity for null Thaumcraft research \"{}\"", research);
+            return;
+        }
+        ri.setComplexity(complexity);
+    }
+
+    public static void refreshResearchPages(final String research) {
+        ResearchItem target = ResearchCategories.getResearch(research);
+        if (target == null) {
+            QuaesitaMagum.LOG.warn("Tried to refresh pages for null Thaumcraft research \"{}\"", research);
+            return;
+        }
+        ResearchPage[] pages = target.getPages();
+        for (int x = 0; x < pages.length; x++) {
+            if (pages[x].recipe != null) {
+                if (pages[x].recipe instanceof IRecipe recipe) {
+                    final ItemStack outputSearched = recipe.getRecipeOutput();
+                    for (IRecipe theCraft : CraftingManager.getInstance()
+                        .getRecipeList()) {
+                        final ItemStack output = theCraft.getRecipeOutput();
+                        if (output != null && StackUtils.areStacksEqual(output, outputSearched)) {
+                            pages[x] = new ResearchPage(theCraft);
+                            break;
+                        }
+                    }
+                } else if (pages[x].recipe instanceof IArcaneRecipe recipe) {
+                    final ItemStack outputSearched = recipe.getRecipeOutput();
+                    for (Object craft : ThaumcraftApi.getCraftingRecipes()) {
+                        if (craft instanceof IArcaneRecipe arcaneRecipe) {
+                            final ItemStack output = arcaneRecipe.getRecipeOutput();
+                            if (output != null && StackUtils.areStacksEqual(output, outputSearched)) {
+                                pages[x] = new ResearchPage(arcaneRecipe);
+                                break;
+                            }
+                        }
+                    }
+                } else if (pages[x].recipe instanceof CrucibleRecipe recipe) {
+                    final ItemStack outputSearched = recipe.getRecipeOutput();
+                    for (Object craft : ThaumcraftApi.getCraftingRecipes()) {
+                        if (craft instanceof CrucibleRecipe crucibleRecipe) {
+                            final ItemStack output = crucibleRecipe.getRecipeOutput();
+                            if (output != null && StackUtils.areStacksEqual(output, outputSearched)) {
+                                pages[x] = new ResearchPage(crucibleRecipe);
+                                break;
+                            }
+                        }
+                    }
+                } else if (pages[x].recipe instanceof InfusionRecipe recipe) {
+                    if (recipe.getRecipeOutput() instanceof ItemStack outputSearched) {
+                        for (Object craft : ThaumcraftApi.getCraftingRecipes()) {
+                            if (craft instanceof InfusionRecipe theCraft) {
+                                final Object output = theCraft.getRecipeOutput();
+                                if (output instanceof ItemStack stack
+                                    && StackUtils.areStacksEqual(stack, outputSearched)) {
+                                    pages[x] = new ResearchPage(theCraft);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static Field displayColumnField = null;
+    private static Field displayRowField = null;
+    private static Field category = null;
+
+    public static void moveResearch(final String research, final String destination, final int x, final int y) {
+        ResearchItem ri = ResearchCategories.getResearch(research);
+        if (ri == null) {
+            QuaesitaMagum.LOG.warn("Tried to set aspects for null Thaumcraft research \"{}\"", research);
+            return;
+        }
+        try {
+            if (displayColumnField == null) {
+                Class<ResearchItem> RIClass = ResearchItem.class;
+                displayColumnField = RIClass.getField("displayColumn");
+                displayRowField = RIClass.getField("displayRow");
+                category = RIClass.getField("category");
+                displayColumnField.setAccessible(true);
+                displayRowField.setAccessible(true);
+                category.setAccessible(true);
+            }
+
+            removeResearch(research);
+            displayColumnField.set(ri, x);
+            displayRowField.set(ri, y);
+            category.set(ri, destination);
+            ri.registerResearchItem();
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
+    public static void orphanResearch(final String research) {
+        final BiConsumer<String[], Consumer<String[]>> removeHelper = (list, setter) -> {
+            if (list == null) return;
+            for (int i = 0; i < list.length; i++) {
+                if (list[i] != null && list[i].equals(research)) {
+                    list = ArrayUtils.remove(list, i);
+                    setter.accept(list);
+                    i--;
+                }
+            }
+        };
+        for (ResearchCategoryList categoryList : ResearchCategories.researchCategories.values()) {
+            for (Map.Entry<String, ResearchItem> entry : categoryList.research.entrySet()) {
+                ResearchItem researchItem = entry.getValue();
+                removeHelper.accept(researchItem.parents, researchItem::setParents);
+                removeHelper.accept(researchItem.parentsHidden, researchItem::setParentsHidden);
+                removeHelper.accept(researchItem.siblings, researchItem::setSiblings);
+            }
+        }
+    }
+
+    public static void removeResearch(final String research) {
+        ResearchItem ri = ResearchCategories.getResearch(research);
+        if (ri == null) {
+            QuaesitaMagum.LOG.warn("Tried to remove null Thaumcraft research \"{}\"", research);
+            return;
+        }
+        ResearchCategoryList rcl = ResearchCategories.getResearchList(ri.category);
+        rcl.research.remove(research);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void removeArcaneRecipe(final ItemStack output) {
+        ThaumcraftApi.getCraftingRecipes()
+            .removeIf(recipe -> {
+                if (recipe instanceof IArcaneRecipe arcaneRecipe) {
+                    final ItemStack stack = arcaneRecipe.getRecipeOutput();
+                    return stack != null && StackUtils.areStacksEqual(stack, output);
+                }
+                return false;
+            });
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void removeCrucibleRecipe(final ItemStack output) {
+        ThaumcraftApi.getCraftingRecipes()
+            .removeIf(recipe -> {
+                if (recipe instanceof CrucibleRecipe crucibleRecipe) {
+                    final ItemStack stack = crucibleRecipe.getRecipeOutput();
+                    return stack != null && StackUtils.areStacksEqual(stack, output);
+                }
+                return false;
+            });
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void removeCrucibleRecipe(final ItemStack output, final ItemStack catalyst) {
+        ThaumcraftApi.getCraftingRecipes()
+            .removeIf(recipe -> {
+                if (recipe instanceof CrucibleRecipe crucibleRecipe) {
+                    final ItemStack stack = crucibleRecipe.getRecipeOutput();
+                    return stack != null && StackUtils.areStacksEqual(stack, output)
+                        && catalyst != null
+                        && crucibleRecipe.catalystMatches(catalyst);
+                }
+                return false;
+            });
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void removeInfusionRecipe(final ItemStack output) {
+        ThaumcraftApi.getCraftingRecipes()
+            .removeIf(recipe -> {
+                if (recipe instanceof InfusionRecipe infusionRecipe) {
+                    final Object object = infusionRecipe.getRecipeOutput();
+                    return object instanceof ItemStack stack && StackUtils.areStacksEqual(stack, output);
+                }
+                return false;
+            });
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void removeInfusionEnchantmentRecipe(final int effectID) {
+        ThaumcraftApi.getCraftingRecipes()
+            .removeIf(recipe -> {
+                if (recipe instanceof InfusionEnchantmentRecipe infusionEnchantmentRecipe) {
+                    final Enchantment enchantment = infusionEnchantmentRecipe.getEnchantment();
+                    return enchantment != null && enchantment.effectId == effectID;
+                }
+                return false;
+            });
+    }
+
+    private static Field infusionRecipeResearchField = null;
+
+    public static void setRecipeResearch(final InfusionRecipe recipe, final String researchName) {
+        if (recipe == null) {
+            QuaesitaMagum.LOG
+                .warn("Tried to set recipe research to \"{}\" for null Thaumcraft infusion recipe", researchName);
+            return;
+        }
+        try {
+            if (infusionRecipeResearchField == null) {
+                infusionRecipeResearchField = InfusionRecipe.class.getDeclaredField("research");
+                infusionRecipeResearchField.setAccessible(true);
+            }
+            infusionRecipeResearchField.set(recipe, researchName);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static Object tc4tweakInfusion;
+    private static Method tc4tweakAdd;
+    private static boolean tc4tweakChecked;
+
+    /**
+     * Adds an infusion recipe. With TC4 Tweaks installed this goes through its InfusionRecipeExt, which also accepts
+     * ore dictionary names as inputs; otherwise it falls back to the plain Thaumcraft API.
+     */
+    @SuppressWarnings("unchecked")
+    public static InfusionRecipe addInfusionCraftingRecipe(String research, ItemStack result, int instability,
+        AspectList aspects, Object input, Object... recipe) {
+        if (result == null || result.getItem() == null || input == null) return null;
+
+        AspectList safeAspects = aspects != null ? aspects : new AspectList();
+        Object[] safeRecipe;
+        if (recipe == null || recipe.length == 0) {
+            safeRecipe = new Object[0];
+        } else {
+            java.util.List<Object> tmp = new java.util.ArrayList<>(recipe.length);
+            for (Object o : recipe) if (o != null) tmp.add(o);
+            safeRecipe = tmp.toArray(new Object[0]);
+        }
+
+        if (!tc4tweakChecked) {
+            tc4tweakChecked = true;
+            try {
+                Class<?> ext = Class.forName("net.glease.tc4tweak.api.infusionrecipe.InfusionRecipeExt");
+                tc4tweakInfusion = ext.getMethod("get")
+                    .invoke(null);
+                tc4tweakAdd = ext.getMethod(
+                    "addInfusionCraftingRecipe",
+                    String.class,
+                    ItemStack.class,
+                    int.class,
+                    AspectList.class,
+                    Object.class,
+                    Object[].class);
+            } catch (ReflectiveOperationException | LinkageError e) {
+                tc4tweakInfusion = null; // TC4 Tweaks not installed or API changed: use the plain API
+            }
+        }
+
+        try {
+            if (tc4tweakInfusion != null) {
+                return (InfusionRecipe) tc4tweakAdd
+                    .invoke(tc4tweakInfusion, research, result, instability, safeAspects, input, safeRecipe);
+            }
+            if (!(input instanceof ItemStack) || !java.util.Arrays.stream(safeRecipe)
+                .allMatch(o -> o instanceof ItemStack)) {
+                QuaesitaMagum.LOG.warn(
+                    "Infusion recipe for {} uses ore dictionary inputs, which need TC4 Tweaks; skipped.",
+                    result.getDisplayName());
+                return null;
+            }
+            ItemStack[] components = java.util.Arrays.copyOf(safeRecipe, safeRecipe.length, ItemStack[].class);
+            return ThaumcraftApi
+                .addInfusionCraftingRecipe(research, result, instability, safeAspects, (ItemStack) input, components);
+        } catch (Exception e) {
+            QuaesitaMagum.LOG.error("Failed to add infusion recipe for {}", result.getDisplayName(), e);
+            return null;
+        }
+    }
+
+    /**
+     * @param size How much of every primal aspect to put in the AspectList
+     * @return An AspectList with all primals equal to size
+     */
+    public static AspectList equalPrimalList(int size) {
+        return new AspectList().add(Aspect.AIR, size)
+            .add(Aspect.FIRE, size)
+            .add(Aspect.WATER, size)
+            .add(Aspect.EARTH, size)
+            .add(Aspect.ORDER, size)
+            .add(Aspect.ENTROPY, size);
+    }
+}

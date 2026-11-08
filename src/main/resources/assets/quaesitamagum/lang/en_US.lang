@@ -1,0 +1,9 @@
+itemGroup.QuaesitaMagum=Quaesita Magum
+tile.quaesitamagum:disEnchanter.name=DisEnchanter
+gui.qm.disEnchanter.main.title=Disenchanter
+gui.qm.disEnchanter.itemDamage1=Item
+gui.qm.disEnchanter.itemDamage2=Damage: %s
+gui.qm.disEnchanter.cost=Cost %s
+key.placeItem=Place Item in World
+tile.quaesitamagum:craftingStation.name=Crafting Station
+crafters.CraftingStation=Crafting Station

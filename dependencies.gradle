@@ -34,5 +34,87 @@
  * For more details, see https://docs.gradle.org/8.0.1/userguide/java_library_plugin.html#sec:java_library_configurations_graph
  */
 dependencies {
+
+
+    api("com.github.GTNewHorizons:Mantle:0.5.4:dev")
+    compileOnly("org.jetbrains:annotations:26.0.1")
+
+    implementation("com.github.GTNewHorizons:GTNHLib:0.11.23:dev")
+
+    implementation("com.github.GTNewHorizons:ModularUI2:2.3.79-1.7.10:dev")
+    implementation("curse.maven:cofh-lib-220333:2388748")
+
+
+    devOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.8.110-GTNH:dev")
+    devOnlyNonPublishable("com.github.GTNewHorizons:Baubles-Expanded:2.2.21-GTNH:dev")
+    devOnlyNonPublishable("io.github.legacymoddingmc:unimixins:0.1.23:dev")
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:Angelica:2.1.53:dev")
+
+    compileOnly('curse.maven:automagy-222153:2285272')
+    compileOnly("com.github.GTNewHorizons:Backhand:1.8.8:dev") {transitive = false}
+    compileOnly("com.github.GTNewHorizons:Botania:1.13.36-GTNH:dev") {transitive = false}
+    compileOnly("thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev") {transitive = false}
+
     //runtimeOnlyNonPublishable("com.github.GTNewHorizons:NotEnoughItems:2.7.69-GTNH:dev")
+
+    // ==================================== Dev test environment (runClient / runServer only) ====================
+    // The mods QMCoreMod's unification, ProjectRed module disabling and pack scripts touch, at the MQ 2.7.1 pack's
+    // versions, so those features can be tested without booting the full pack. Nothing here is published.
+
+    // Thaumcraft (already compileOnly above) and TC addons
+    runtimeOnlyNonPublishable("thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev") { transitive = false }
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:ThaumicBases:1.9.22:dev") { transitive = false }
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:DummyCore:1.21.0:dev") { transitive = false } // Thaumic Bases needs it
+    // needs TC4Tweaks|API|InfusionRecipeLib, which the pack's TC4 Tweaks jar (below) provides
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:AspectRecipeIndex:1.1.6:dev") { transitive = false }
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:ForbiddenMagic:0.9.18-GTNH:dev") { transitive = false }
+
+    // ProjectRed (Core/Exploration/Illumination kept, tech modules force-disabled); its POM brings ForgeMultipart
+    // and ForgeRelocation
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:ProjectRed:4.12.50-GTNH:dev")
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:MrTJPCore:1.3.7:dev") { transitive = false }
+
+    // Unification winners and losers
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:ForestryMC:4.11.40:dev") { transitive = false }
+    runtimeOnlyNonPublishable("ganymedes01.etfuturum:Et-Futurum-Requiem:2.6.64-GTNH:dev") { transitive = false }
+    runtimeOnlyNonPublishable(rfg.deobf("curse.maven:biomes-o-plenty-220318:2499612"))
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:Botania:1.13.36-GTNH:dev") { transitive = false }
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:MagicBees:2.10.13-GTNH:dev") { transitive = false }
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:Translocators:1.4.5:dev") { transitive = false }
+
+    // Witchery (curse file 2234410 is the pack's witchery-1.7.10-0.24.1.jar byte for byte): compiled against for the
+    // brew registry helpers in integration/witchery, and run in dev with Witchery++
+    devOnlyNonPublishable(rfg.deobf("curse.maven:witchery-69673:2234410"))
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:WitcheryExtras:1.4.20:dev") { transitive = false }
+
+    // Script targets
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:Natura:2.8.24:dev") { transitive = false }
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:BloodMagic:1.9.16:dev") { transitive = false }
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:twilightforest:2.7.45:dev") { transitive = false }
+    runtimeOnlyNonPublishable("com.github.GTNewHorizons:StructureLib:1.4.47:dev") { transitive = false }
+
+    // Mods with no matching Maven build (the pack runs original HarvestCraft and an unpublished TC4 Tweaks) are
+    // deobfuscated straight from the pack instance. Witching Gadgets is left out: its research needs addon research
+    // (e.g. Magic Bees' MB_EssenceTime) that this cut-down environment doesn't have, and it crashes in postInit.
+    // The newest Prism instance named
+    // like "MQ-2.7.2", or -PmqPackMods=/path/to/mods. Skipped if neither is found.
+    def mqPackMods = project.findProperty("mqPackMods") ? file(project.findProperty("mqPackMods")) : null
+    if (mqPackMods == null) {
+        def instances = new File(System.getProperty("user.home"),
+            ".var/app/org.prismlauncher.PrismLauncher/data/PrismLauncher/instances")
+        def latest = (instances.listFiles() ?: [])
+            .findAll { it.name =~ /MQ-\d+(\.\d+)*$/ && new File(it, "minecraft/mods").isDirectory() }
+            .max { a, b ->
+                def va = (a.name =~ /MQ-([\d.]+)$/)[0][1].tokenize('.')*.toInteger()
+                def vb = (b.name =~ /MQ-([\d.]+)$/)[0][1].tokenize('.')*.toInteger()
+                [va, vb].transpose().findResult { x, y -> x <=> y ?: null } ?: va.size() <=> vb.size()
+            }
+        if (latest) mqPackMods = new File(latest, "minecraft/mods")
+    }
+    if (mqPackMods?.isDirectory()) {
+        ["Pam's HarvestCraft 1.7.10Lb.jar", "Thaumcraft4Tweaks-1.5.48.jar"].each { jar ->
+            def f = new File(mqPackMods, jar)
+            if (f.isFile()) runtimeOnlyNonPublishable(rfg.deobf(files(f)))
+        }
+    }
 }
