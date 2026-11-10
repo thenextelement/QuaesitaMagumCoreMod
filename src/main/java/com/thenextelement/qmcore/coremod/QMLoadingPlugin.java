@@ -43,6 +43,7 @@ public class QMLoadingPlugin implements IFMLLoadingPlugin, IEarlyMixinLoader {
     private static final String KEY_PACK_VERSION = "displayedModpackVersion";
     private static final String KEY_DISABLED_MODS = "forceDisabledMods";
     private static final String KEY_UNIFICATION = "enableOreUnification";
+    private static final String KEY_DISABLE_RF_TECH = "disableRFTech";
 
     /** ProjectRed's tech modules. Core, Exploration and Illumination are kept. */
     private static final String DEFAULT_DISABLED_MODS = String.join(
@@ -59,6 +60,8 @@ public class QMLoadingPlugin implements IFMLLoadingPlugin, IEarlyMixinLoader {
     /** Mod IDs removed from FML's mod list before construction, so every other mod sees them as not installed. */
     public static Set<String> forceDisabledMods = Collections.emptySet();
     public static boolean enableOreUnification = true;
+    /** Switches off Forestry's and Binnie's RF machines (see common/tech/DisabledTech). */
+    public static boolean disableRFTech = true;
 
     @Override
     public void injectData(Map<String, Object> data) {
@@ -75,6 +78,7 @@ public class QMLoadingPlugin implements IFMLLoadingPlugin, IEarlyMixinLoader {
         props.setProperty(KEY_PACK_VERSION, References.MODPACK_VERSION);
         props.setProperty(KEY_DISABLED_MODS, DEFAULT_DISABLED_MODS);
         props.setProperty(KEY_UNIFICATION, "true");
+        props.setProperty(KEY_DISABLE_RF_TECH, "true");
 
         try (Reader r = new FileReader(configFile)) {
             props.load(r);
@@ -99,6 +103,9 @@ public class QMLoadingPlugin implements IFMLLoadingPlugin, IEarlyMixinLoader {
         enableOreUnification = !"false".equalsIgnoreCase(
             props.getProperty(KEY_UNIFICATION, "true")
                 .trim());
+        disableRFTech = !"false".equalsIgnoreCase(
+            props.getProperty(KEY_DISABLE_RF_TECH, "true")
+                .trim());
 
         // write back so new keys appear in existing files
         try (Writer w = new FileWriter(configFile)) {
@@ -107,7 +114,8 @@ public class QMLoadingPlugin implements IFMLLoadingPlugin, IEarlyMixinLoader {
                 "Quaesita Magum core settings, read before the game window opens.\n"
                     + "displayedModpackName and displayedModpackVersion form the window title.\n"
                     + "forceDisabledMods: comma-separated mod IDs that FML will treat as not installed.\n"
-                    + "enableOreUnification: one item per metal/gem/dust (see common/unification).");
+                    + "enableOreUnification: one item per metal/gem/dust (see common/unification).\n"
+                    + "disableRFTech: switch off Forestry's and Binnie's RF machines and their parts.");
         } catch (IOException e) {
             LOG.warn("Can't write {}. Changes may not have been saved!", CONFIG_FILE_NAME, e);
         }

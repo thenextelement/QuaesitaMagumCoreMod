@@ -30,6 +30,8 @@ public final class ScriptLoader {
         scripts.add(new ScriptMiscFixes.BloodMagic());
         scripts.add(new ScriptMiscFixes.Botania());
         scripts.add(new ScriptProjectRed());
+        scripts.add(new ScriptForestry());
+        scripts.add(new ScriptBinnie());
 
         // A script that references another mod's classes (not just its items by name) must only be constructed
         // when that mod is loaded, or class loading crashes the game. Put those behind a check:
