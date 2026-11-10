@@ -2,8 +2,6 @@ package com.thenextelement.qmcore.mixin.mixins.late.etfuturum;
 
 import java.util.Random;
 
-import com.thenextelement.qmcore.common.utils.EfrChunkEdge;
-
 import net.minecraft.world.World;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -11,10 +9,10 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import com.thenextelement.qmcore.common.utils.EfrChunkEdge;
+
 /** Stops Et Futurum's glow lichen from reading across a chunk border during population. See {@link EfrChunkEdge}. */
-@Mixin(
-    targets = "ganymedes01.etfuturum.world.generate.decorate.WorldGenGlowLichen",
-    remap = false)
+@Mixin(targets = "ganymedes01.etfuturum.world.generate.decorate.WorldGenGlowLichen", remap = false)
 public abstract class MixinWorldGenGlowLichen_ChunkEdge {
 
     @Inject(method = "func_76484_a", at = @At("HEAD"), cancellable = true, remap = false)

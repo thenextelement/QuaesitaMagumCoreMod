@@ -26,9 +26,15 @@ import mods.natura.worldgen.SakuraTreeGen;
 import mods.natura.worldgen.WhiteTreeGen;
 import mods.natura.worldgen.WillowGen;
 
-/** Keeps Natura's tree, bush and plant generators from loading neighbouring chunks during population. See UnloadedChunkGuard. */
+/**
+ * Keeps Natura's tree, bush and plant generators from loading neighbouring chunks during population. See
+ * UnloadedChunkGuard.
+ */
 @Mixin(
-    value = { BerryBushGen.class, BloodTreeLargeGen.class, BushTreeGen.class, DarkwoodGen.class, EucalyptusTreeGenShort.class, FlowerGen.class, FusewoodGen.class, GlowshroomGenBlueGreen.class, GlowshroomGenPurple.class, NetherBerryBushGen.class, RareTreeGen.class, RedwoodTreeGen.class, SaguaroGen.class, SakuraTreeGen.class, WhiteTreeGen.class, WillowGen.class },
+    value = { BerryBushGen.class, BloodTreeLargeGen.class, BushTreeGen.class, DarkwoodGen.class,
+        EucalyptusTreeGenShort.class, FlowerGen.class, FusewoodGen.class, GlowshroomGenBlueGreen.class,
+        GlowshroomGenPurple.class, NetherBerryBushGen.class, RareTreeGen.class, RedwoodTreeGen.class, SaguaroGen.class,
+        SakuraTreeGen.class, WhiteTreeGen.class, WillowGen.class },
     remap = false)
 public abstract class MixinNaturaWorldgen_UnloadedChunkScope {
 

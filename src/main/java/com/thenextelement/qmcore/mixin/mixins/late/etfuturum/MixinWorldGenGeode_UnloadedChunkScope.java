@@ -1,6 +1,5 @@
 package com.thenextelement.qmcore.mixin.mixins.late.etfuturum;
 
-
 import java.util.Random;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -11,11 +10,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import com.thenextelement.qmcore.common.utils.UnloadedChunkGuard;
 
 /** Keeps Et Futurum's geode generator from loading neighbouring chunks during population. See UnloadedChunkGuard. */
-@Mixin(
-    targets = {
-        "ganymedes01.etfuturum.world.generate.feature.WorldGenGeode"
-    },
-    remap = false)
+@Mixin(targets = { "ganymedes01.etfuturum.world.generate.feature.WorldGenGeode" }, remap = false)
 public abstract class MixinWorldGenGeode_UnloadedChunkScope {
 
     @Inject(method = "func_76484_a", at = @At("HEAD"), remap = false)
