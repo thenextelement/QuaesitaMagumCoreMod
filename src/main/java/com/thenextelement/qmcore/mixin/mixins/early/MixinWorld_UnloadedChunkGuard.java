@@ -39,12 +39,20 @@ public abstract class MixinWorld_UnloadedChunkGuard {
         if (UnloadedChunkGuard.isUnloadedAccess((World) (Object) this, x, z)) cir.setReturnValue(null);
     }
 
-    @Inject(method = "func_147449_b", at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(
+        method = "func_147449_b(IIILnet/minecraft/block/Block;)Z",
+        at = @At("HEAD"),
+        cancellable = true,
+        remap = false)
     private void qmcore$setBlock(int x, int y, int z, Block block, CallbackInfoReturnable<Boolean> cir) {
         if (UnloadedChunkGuard.isUnloadedAccess((World) (Object) this, x, z)) cir.setReturnValue(false);
     }
 
-    @Inject(method = "func_147465_d", at = @At("HEAD"), cancellable = true, remap = false)
+    @Inject(
+        method = "func_147465_d(IIILnet/minecraft/block/Block;II)Z",
+        at = @At("HEAD"),
+        cancellable = true,
+        remap = false)
     private void qmcore$setBlockMeta(int x, int y, int z, Block block, int meta, int flags,
         CallbackInfoReturnable<Boolean> cir) {
         if (UnloadedChunkGuard.isUnloadedAccess((World) (Object) this, x, z)) cir.setReturnValue(false);
