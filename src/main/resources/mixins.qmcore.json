@@ -5,7 +5,10 @@
   "refmap": "mixins.qmcore.refmap.json",
   "target": "@env(DEFAULT)",
   "compatibilityLevel": "JAVA_8",
-  "mixins": [],
+  "mixins": [
+    "late.etfuturum.MixinWorldGenGlowLichen_ChunkEdge",
+    "late.etfuturum.MixinWorldGenCaveVines_ChunkEdge"
+  ],
   "client": [],
   "server": []
 }

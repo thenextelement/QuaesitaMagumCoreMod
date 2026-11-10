@@ -76,7 +76,7 @@ dependencies {
 
     // Unification winners and losers
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:ForestryMC:4.11.40:dev") { transitive = false }
-    runtimeOnlyNonPublishable("ganymedes01.etfuturum:Et-Futurum-Requiem:2.6.64-GTNH:dev") { transitive = false }
+    devOnlyNonPublishable("ganymedes01.etfuturum:Et-Futurum-Requiem:2.6.64-GTNH:dev") { transitive = false }
     runtimeOnlyNonPublishable(rfg.deobf("curse.maven:biomes-o-plenty-220318:2499612"))
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:Botania:1.13.36-GTNH:dev") { transitive = false }
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:MagicBees:2.10.13-GTNH:dev") { transitive = false }
