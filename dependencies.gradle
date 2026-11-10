@@ -65,8 +65,6 @@ dependencies {
     runtimeOnlyNonPublishable("thaumcraft:Thaumcraft:1.7.10-4.2.3.5:dev") { transitive = false }
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:ThaumicBases:1.9.22:dev") { transitive = false }
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:DummyCore:1.21.0:dev") { transitive = false } // Thaumic Bases needs it
-    // needs TC4Tweaks|API|InfusionRecipeLib, which the pack's TC4 Tweaks jar (below) provides
-    runtimeOnlyNonPublishable("com.github.GTNewHorizons:AspectRecipeIndex:1.1.6:dev") { transitive = false }
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:ForbiddenMagic:0.9.18-GTNH:dev") { transitive = false }
 
     // ProjectRed (Core/Exploration/Illumination kept, tech modules force-disabled); its POM brings ForgeMultipart
