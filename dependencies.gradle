@@ -88,7 +88,7 @@ dependencies {
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:WitcheryExtras:1.4.20:dev") { transitive = false }
 
     // Script targets
-    runtimeOnlyNonPublishable("com.github.GTNewHorizons:Natura:2.8.24:dev") { transitive = false }
+    devOnlyNonPublishable("com.github.GTNewHorizons:Natura:2.8.24:dev") { transitive = false }
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:BloodMagic:1.9.16:dev") { transitive = false }
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:twilightforest:2.7.45:dev") { transitive = false }
     runtimeOnlyNonPublishable("com.github.GTNewHorizons:StructureLib:1.4.47:dev") { transitive = false }

@@ -128,6 +128,7 @@ public class QMLoadingPlugin implements IFMLLoadingPlugin, IEarlyMixinLoader {
     public List<String> getMixins(Set<String> loadedCoreMods) {
         final List<String> mixins = new ArrayList<>(Arrays.asList("MixinJarDiscoverer_ForceDisableMods"));
         if (enableOreUnification) mixins.add("MixinOreDictionary_Unification");
+        mixins.add("MixinWorld_UnloadedChunkGuard");
         if (FMLLaunchHandler.side()
             .isClient()) {
             mixins.add("MixinMinecraft_PackIcon");
